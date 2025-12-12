@@ -1,0 +1,30 @@
+# OS
+.DS_Store
+
+# Node dependencies
+node_modules/
+
+# Build and coverage output
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# App data and assets
+meme_images/
+memes_images/
+temp/
+
+.venv/
+
