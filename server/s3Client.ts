@@ -18,6 +18,10 @@ type MemeS3ClientConfig = S3Prefixes & {
   bucket: string;
   region: string;
   defaultTtlSeconds?: number;
+  credentials?: {
+    accessKeyId: string;
+    secretAccessKey: string;
+  };
 };
 
 function normalizePrefix(prefix?: string): string {
@@ -63,9 +67,19 @@ export class MemeS3Client {
   constructor(config: MemeS3ClientConfig) {
     if (!config.bucket) throw new Error("S3 bucket is required");
     if (!config.region) throw new Error("S3 region is required");
+    if (config.credentials) {
+      const { accessKeyId, secretAccessKey } = config.credentials;
+      if (!accessKeyId || !secretAccessKey) {
+        throw new Error("Both accessKeyId and secretAccessKey are required when credentials are provided");
+      }
+    }
 
     this.bucket = config.bucket;
-    this.client = new S3Client({ region: config.region });
+    this.client = new S3Client({
+      region: config.region,
+      // When provided, use explicit credentials; otherwise default provider chain takes over
+      ...(config.credentials ? { credentials: config.credentials } : {}),
+    });
     this.staticPrefix = normalizePrefix(config.staticPrefix ?? "static");
     this.generatedPrefix = normalizePrefix(config.generatedPrefix ?? "generated");
     this.defaultTtlSeconds = config.defaultTtlSeconds ?? 900;

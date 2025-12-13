@@ -14,6 +14,8 @@ const {
   PINECONE_API_KEY,
   PINECONE_INDEX,
   PINECONE_NAMESPACE,
+  AWS_ACCESS_KEY,
+  AWS_SECRET_KEY,
   S3_BUCKET,
   S3_REGION,
   S3_STATIC_PREFIX = "static",
@@ -28,6 +30,11 @@ if (!PINECONE_API_KEY || !PINECONE_INDEX || !PINECONE_NAMESPACE) {
 
 if (!S3_BUCKET || !S3_REGION) {
   console.error("Missing env: S3_BUCKET, S3_REGION");
+  process.exit(1);
+}
+
+if (!AWS_ACCESS_KEY || !AWS_SECRET_KEY) {
+  console.error("Missing env: AWS_ACCESS_KEY, AWS_SECRET_KEY");
   process.exit(1);
 }
 
@@ -69,6 +76,10 @@ const s3 = new MemeS3Client({
   staticPrefix: S3_STATIC_PREFIX,
   generatedPrefix: S3_GENERATED_PREFIX,
   defaultTtlSeconds: signedUrlTtlSeconds,
+  credentials: {
+    accessKeyId: AWS_ACCESS_KEY,
+    secretAccessKey: AWS_SECRET_KEY,
+  },
 });
 
 function build_server() {
