@@ -1,5 +1,4 @@
 import fs from "fs";
-import fetch from "node-fetch";
 import { Jimp, loadFont, measureTextHeight } from "jimp";
 import {
   SANS_8_WHITE,
