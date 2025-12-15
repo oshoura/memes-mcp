@@ -226,9 +226,20 @@ function build_server() {
       };
 
       return {
-        _meta: { "openai/toolInvocation/invoked": "Meme image generated and can be accessed at generated_url" },
         content: [
-          { type: "text", text: `Meme Generated! View at ${generatedUrl}`, annotations: { audience: ["user", "assistant"] } },
+          {
+            type: "text",
+            text: "Meme ready!",
+            annotations: { audience: ["user", "assistant"] },
+          },
+          {
+            type: "resource_link",
+            uri: generatedUrl,
+            mimeType: "image/png",
+            name: `generated-meme-${meme_id}`,
+            title: `Generated meme ${meme_id}`,
+            annotations: { audience: ["user"] },
+          },
         ],
         structuredContent: out,
       };
