@@ -250,17 +250,23 @@ function build_server() {
 }
 
 const server = build_server();
-app.post('/mcp', async (req, res) => {
-  // Create a new transport for each request to prevent request ID collisions
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true
-  });
+// app.post('/mcp', async (req, res) => {
+//   // Create a new transport for each request to prevent request ID collisions
+//   const transport = new StreamableHTTPServerTransport({
+//     sessionIdGenerator: undefined,
+//     enableJsonResponse: true
+//   });
 
-  res.on('close', () => {
-    transport.close();
-  });
+//   res.on('close', () => {
+//     transport.close();
+//   });
 
+//   await server.connect(transport);
+//   await transport.handleRequest(req, res, req.body);
+// });
+app.all("/mcp", async (req, res) => {
+  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
+  res.on("close", () => transport.close());
   await server.connect(transport);
   await transport.handleRequest(req, res, req.body);
 });
