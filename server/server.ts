@@ -84,7 +84,7 @@ const s3 = new MemeS3Client({
 });
 
 function build_server() {
-  const server = new McpServer({ name: "meme-creator", version: "1.0.0" });
+  const server = new McpServer({ name: "meme-creator", version: "1.0.1" });
 
   /** find_meme: query Pinecone by text and return top match with text-region descriptions */
   server.registerTool(
