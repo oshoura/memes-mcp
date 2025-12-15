@@ -50,6 +50,7 @@ type MemeTemplate = {
   width?: number;
   height?: number;
   image_url: string;
+  image_description: string;
   text_options?: MemeTextOption[];
 };
 
@@ -94,14 +95,21 @@ function build_server() {
         "Use this when the user describes a meme they want and you need the best matching template and text regions. If user does not have exact meme they are referring to then describe the intention of the meme. Do not use if the user already provided meme_id or only needs text rendered—use create_meme instead.",
       inputSchema: { query: z.string().min(1) },
       outputSchema: {
-        meme_id: z.string(),
-        title: z.string().optional(),
-        image_url: z.string(),
-        text_regions: z
+        results: z
           .array(
             z.object({
-              id: z.string(),
-              description: z.string(),
+              meme_id: z.string(),
+              title: z.string().optional(),
+              image_url: z.string(),
+              image_description: z.string(),
+              text_regions: z
+                .array(
+                  z.object({
+                    id: z.string(),
+                    description: z.string(),
+                  })
+                )
+                .default([]),
             })
           )
           .default([]),
@@ -115,28 +123,31 @@ function build_server() {
       },
     },
     async ({ query }) => {
-      const results = await memeSearch.search(query, 1);
-      const match = results[0];
-      if (!match) {
-        const empty = { meme_id: "", title: "", image_url: "", text_regions: [] };
+      const results = await memeSearch.search(query, 5);
+      if (!results.length) {
+        const empty = { results: [] as any[] };
         return {
-          _meta: { "openai/toolInvocation/invoked": "No meme template found" },
+          _meta: { "openai/toolInvocation/invoked": "No meme templates found" },
           content: [{ type: "text", text: JSON.stringify(empty) }],
           structuredContent: empty,
         } as any;
       }
 
-      const template = memes[match.meme_id];
-      const payload = {
-        meme_id: match.meme_id,
-        title: match.title ?? "",
-        image_url: template?.image_url ?? "",
-        text_regions: match.text_regions,
-      };
+      const payload = results.map((match) => {
+        const template = memes[match.meme_id];
+        return {
+          meme_id: match.meme_id,
+          title: match.title ?? "",
+          image_url: template?.image_url ?? "",
+          image_description: template?.image_description ?? "",
+          text_regions: match.text_regions,
+        };
+      });
+      const structuredContent = { results: payload };
       return {
-        _meta: { "openai/toolInvocation/invoked": "Found a matching meme template" },
-        content: [{ type: "text", text: JSON.stringify(payload) }],
-        structuredContent: payload,
+        _meta: { "openai/toolInvocation/invoked": `Found ${payload.length} matching meme templates` },
+        content: [{ type: "text", text: JSON.stringify(structuredContent) }],
+        structuredContent,
       } as any;
     }
   );
