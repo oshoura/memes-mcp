@@ -229,6 +229,10 @@ app.post('/mcp', async (req, res) => {
   await transport.handleRequest(req, res, req.body);
 });
 
+app.get('/', (req, res) => {
+  res.send('Im alive');
+});
+
 const port = parseInt(PORT || "3000");
 app.listen(port, () => {
   console.log(`Demo MCP Server running on port ${port}`);
