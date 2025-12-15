@@ -114,6 +114,11 @@ function build_server() {
           )
           .default([]),
       },
+      _meta: {
+        // "openai/outputTemplate": "ui://widget/kanban-board.html",
+        "openai/toolInvocation/invoking": "Searching for meme templates",
+        "openai/toolInvocation/invoked": "Meme templates found.",
+      },
       annotations: {
         title: "Search meme templates",
         readOnlyHint: true,
@@ -158,7 +163,7 @@ function build_server() {
     {
       title: "Create meme image",
       description:
-        "Use this when you already have a meme_id. User may have provided text regions, or the llm may provide the text regions. You may use none or all of the text regions provided by the find_meme tool. Do not use for discovery; call find_meme first.",
+        "Use this when you already have a meme_id from the find_meme tool. User may have provided text regions, or the llm may provide the text regions. You may use none or all of the text regions provided by the find_meme tool. Do not use for discovery; call find_meme first. Display the meme image at generated_url in the response.",
       inputSchema: {
         meme_id: z.string(),
         texts: z.array(z.object({ id: z.string(), text: z.string().min(1) })),
@@ -168,12 +173,17 @@ function build_server() {
         generated_key: z.string(),    // saved PNG key in S3
         generated_url: z.string(),    // signed URL to fetch PNG
       },
+      _meta: {
+        // "openai/outputTemplate": "ui://widget/kanban-board.html",
+        "openai/toolInvocation/invoking": "Making the meme",
+        "openai/toolInvocation/invoked": "Meme ready.",
+      },
       annotations: {
         title: "Render meme with text",
-        readOnlyHint: false,
+        readOnlyHint: true,
         destructiveHint: false,
         openWorldHint: false,
-        idempotentHint: false,
+        idempotentHint: true,
       },
     },
     async ({ meme_id, texts }) => {
