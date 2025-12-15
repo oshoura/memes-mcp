@@ -91,7 +91,7 @@ function build_server() {
     {
       title: "Find a meme template",
       description:
-        "Searches for the most appropriate meme template for the user based on the text query.",
+        "Use this when the user describes a meme they want and you need the best matching template and text regions. If user does not have exact meme they are referring to then describe the intention of the meme. Do not use if the user already provided meme_id or only needs text rendered—use create_meme instead.",
       inputSchema: { query: z.string().min(1) },
       outputSchema: {
         meme_id: z.string(),
@@ -106,6 +106,13 @@ function build_server() {
           )
           .default([]),
       },
+      annotations: {
+        title: "Search meme templates",
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+        idempotentHint: true,
+      },
     },
     async ({ query }) => {
       const results = await memeSearch.search(query, 1);
@@ -113,6 +120,7 @@ function build_server() {
       if (!match) {
         const empty = { meme_id: "", title: "", image_url: "", text_regions: [] };
         return {
+          _meta: { "openai/toolInvocation/invoked": "No meme template found" },
           content: [{ type: "text", text: JSON.stringify(empty) }],
           structuredContent: empty,
         } as any;
@@ -126,6 +134,7 @@ function build_server() {
         text_regions: match.text_regions,
       };
       return {
+        _meta: { "openai/toolInvocation/invoked": "Found a matching meme template" },
         content: [{ type: "text", text: JSON.stringify(payload) }],
         structuredContent: payload,
       } as any;
@@ -137,16 +146,23 @@ function build_server() {
     "create_meme",
     {
       title: "Create meme image",
-      description: "Creates a meme image from a meme template and user texts.",
+      description:
+        "Use this when you already have a meme_id. User may have provided text regions, or the llm may provide the text regions. You may use none or all of the text regions provided by the find_meme tool. Do not use for discovery; call find_meme first.",
       inputSchema: {
         meme_id: z.string(),
         texts: z.array(z.object({ id: z.string(), text: z.string().min(1) })),
       },
       outputSchema: {
         meme_id: z.string(),
-        image_url: z.string(),        // from memes.json
         generated_key: z.string(),    // saved PNG key in S3
         generated_url: z.string(),    // signed URL to fetch PNG
+      },
+      annotations: {
+        title: "Render meme with text",
+        readOnlyHint: false,
+        destructiveHint: false,
+        openWorldHint: false,
+        idempotentHint: false,
       },
     },
     async ({ meme_id, texts }) => {
@@ -177,15 +193,17 @@ function build_server() {
 
       // 5) Upload PNG to S3 and return signed URL
       const pngBuffer = await image.toPngBuffer();
-      const { key: generatedKey, url: generatedUrl } = await s3.storeGeneratedImage(meme_id, pngBuffer);
-      console.log(`Uploaded generated meme to S3: ${generatedKey}`);
+      const { url: generatedUrl, key: generatedKey } = await s3.storeGeneratedImage(meme_id, pngBuffer);
+      console.log(`Uploaded generated meme to S3: ${generatedUrl}`);
 
       const out = {
         meme_id,
-        meme_image_url: generatedUrl,
+        generated_key: generatedKey,
+        generated_url: generatedUrl,
       };
 
       return {
+        _meta: { "openai/toolInvocation/invoked": "Meme image generated and can be accessed at generated_url" },
         content: [{ type: "text", text: JSON.stringify(out) }],
         structuredContent: out,
       };
@@ -213,7 +231,7 @@ app.post('/mcp', async (req, res) => {
 
 const port = parseInt(PORT || "3000");
 app.listen(port, () => {
-  console.log(`Demo MCP Server running on http://localhost:${port}/mcp`);
+  console.log(`Demo MCP Server running on port ${port}`);
 }).on('error', error => {
   console.error('Server error:', error);
   process.exit(1);
