@@ -151,7 +151,9 @@ function build_server() {
       const structuredContent = { results: payload };
       return {
         _meta: { "openai/toolInvocation/invoked": `Found ${payload.length} matching meme templates` },
-        content: [{ type: "text", text: JSON.stringify(structuredContent), annotations: { audience: "assistant" } }],
+        content: [
+          { type: "text", text: JSON.stringify(structuredContent), annotations: { audience: ["assistant"] } },
+        ],
         structuredContent,
       } as any;
     }
@@ -225,7 +227,9 @@ function build_server() {
 
       return {
         _meta: { "openai/toolInvocation/invoked": "Meme image generated and can be accessed at generated_url" },
-        content: [{ type: "text", text: `Meme Generated! View at ${generatedUrl}`, annotations: { audience: "user" } }],
+        content: [
+          { type: "text", text: `Meme Generated! View at ${generatedUrl}`, annotations: { audience: ["user", "assistant"] } },
+        ],
         structuredContent: out,
       };
     }
