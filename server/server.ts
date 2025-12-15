@@ -151,7 +151,7 @@ function build_server() {
       const structuredContent = { results: payload };
       return {
         _meta: { "openai/toolInvocation/invoked": `Found ${payload.length} matching meme templates` },
-        content: [{ type: "text", text: JSON.stringify(structuredContent) }],
+        content: [{ type: "text", text: JSON.stringify(structuredContent), annotations: { audience: "assistant" } }],
         structuredContent,
       } as any;
     }
@@ -163,7 +163,7 @@ function build_server() {
     {
       title: "Create meme image",
       description:
-        "Use this when you already have a meme_id from the find_meme tool. User may have provided text regions, or the llm may provide the text regions. You may use none or all of the text regions provided by the find_meme tool. Do not use for discovery; call find_meme first. Display the meme image at generated_url in the response.",
+        "Use this when you already have a meme_id from the find_meme tool. User may have provided text regions, or the assistant may provide the text regions. You may use none or all of the text regions provided by the find_meme tool. Do not use for discovery; call find_meme first. Display the meme image at generated_url in the response.",
       inputSchema: {
         meme_id: z.string(),
         texts: z.array(z.object({ id: z.string(), text: z.string().min(1) })),
@@ -225,7 +225,7 @@ function build_server() {
 
       return {
         _meta: { "openai/toolInvocation/invoked": "Meme image generated and can be accessed at generated_url" },
-        content: [{ type: "text", text: JSON.stringify(out) }],
+        content: [{ type: "text", text: `Meme Generated! View at ${generatedUrl}`, annotations: { audience: "user" } }],
         structuredContent: out,
       };
     }
