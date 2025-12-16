@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx server.ts",
-    "build": "tsc --project tsconfig.json",
+    "build": "tsc --project tsconfig.json && cp memes.json dist/memes.json",
     "start": "node dist/server.js"
   },
   "keywords": [],
