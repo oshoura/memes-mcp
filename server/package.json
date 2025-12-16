@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx server.ts"
+    "dev": "tsx server.ts",
+    "build": "tsc --project tsconfig.json",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "@types/node": "^22.10.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
